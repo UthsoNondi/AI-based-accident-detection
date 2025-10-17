@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Accident Detection System Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    {/* Leaflet CSS for Maps */}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      .gauge-bg {
+        fill: none;
+        stroke: #374151; /* gray-700 */
+        stroke-width: 12;
+      }
+      .gauge-fg {
+        fill: none;
+        stroke: #22d3ee; /* cyan-400 */
+        stroke-width: 12;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.5s ease-in-out, stroke 0.5s ease-in-out;
+        transform-origin: 50% 50%;
+        transform: rotate(-90deg);
+      }
+      /* Ensure map tiles aren't distorted */
+      .leaflet-container {
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-slate-900">
+    <div id="root"></div>
+
+    {/* Leaflet JS for Maps */}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    {/* Chart.js for Graphs */}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

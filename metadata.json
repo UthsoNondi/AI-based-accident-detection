@@ -1,0 +1,5 @@
+{
+  "name": "Live AI Accident Detection Dashboard",
+  "description": "An interactive dashboard for monitoring a real-world or simulated AI Accident Detection System. Connect to your ESP32-CAM and Arduino to see real-time sensor data, video, AI risk analysis, and more.",
+  "requestFramePermissions": []
+}
