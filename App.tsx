@@ -55,17 +55,18 @@ const App: React.FC = () => {
     console.log("Accident triggered!");
     // In live mode, the sensor data is already at crash levels
     // In simulation mode, we force it
+    let currentData = mode === 'live' && latestData ? latestData : sensorData;
     if (mode === 'simulation') {
-        const crashData = updateSensorData(sensorData, true);
+        const crashData = updateSensorData(currentData, true);
         setSensorData(crashData);
         setDataHistory(prev => [...prev.slice(-DATA_HISTORY_LENGTH + 1), crashData]);
+        currentData = crashData;
     }
     setAccidentRisk({ level: 'CRITICAL', value: 100 });
     setCurrentSound('**CRASH DETECTED**');
     setRescueStatus('calculating');
 
     setTimeout(() => {
-        const currentData = mode === 'live' && latestData ? latestData : sensorData;
         const newEntry = createBlockchainEntry(
           accidentLog.length > 0 ? accidentLog[accidentLog.length - 1].hash : '0',
           currentData
@@ -108,8 +109,8 @@ const App: React.FC = () => {
         return;
     }
     
-    // 1 in 100 chance of triggering an accident in simulation
-    if (Math.random() < 0.01) {
+    // 1 in 200 chance of triggering an accident in simulation
+    if (Math.random() < 0.005) {
       triggerAccident();
     } else {
       const newSensorData = updateSensorData(sensorData);

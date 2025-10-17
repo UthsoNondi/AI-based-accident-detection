@@ -65,14 +65,28 @@ const RiskGauge: React.FC<{ value: number, level: string }> = ({ value, level })
     );
 };
 
-const SENSOR_LABELS: { [key in keyof Omit<SensorData, 'driverHealth' | 'gps'>]: string } = {
-    gForce: 'G-Force',
-    vibration: 'Vibration',
-    velocity: 'Velocity',
-    temperature: 'Temperature',
-    gasLevel: 'Gas Level',
-    soundAmplitude: 'Sound Amp.',
+const SensorBar: React.FC<{ label: string, value: number; max: number; thresholds: { warn: number; danger: number }; unit: string }> = ({ label, value, max, thresholds, unit }) => {
+    const percentage = Math.min((value / max) * 100, 100);
+    let barColor = 'bg-cyan-500';
+    if (value > thresholds.danger) {
+        barColor = 'bg-red-500 animate-pulse';
+    } else if (value > thresholds.warn) {
+        barColor = 'bg-yellow-400';
+    }
+
+    return (
+        <div>
+            <div className="flex justify-between items-baseline mb-1">
+                <span className="text-gray-400 text-sm font-medium">{label}</span>
+                <span className="font-mono font-bold text-lg text-gray-100">{value.toFixed(1)} <span className="text-xs text-gray-400 font-sans">{unit}</span></span>
+            </div>
+            <div className="w-full bg-gray-900/50 rounded-full h-2">
+                <div className={`${barColor} h-2 rounded-full`} style={{ width: `${percentage}%`, transition: 'width 0.3s ease-in-out, background-color 0.3s ease-in-out' }}></div>
+            </div>
+        </div>
+    );
 };
+
 
 const CameraFeed: React.FC<{ cameraUrl: string }> = ({ cameraUrl }) => {
     const [imgError, setImgError] = useState(false);
@@ -203,27 +217,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ sensorData, dataHistory, a
   if (driverHealth.fatigueLevel === 'Drowsy') fatigueColor = 'text-yellow-400';
   if (driverHealth.fatigueLevel === 'High') fatigueColor = 'text-red-500 animate-pulse';
 
+  const sensorConfigs = {
+    velocity: { label: 'Velocity', unit: 'km/h', max: 150, thresholds: { warn: 110, danger: 130 } },
+    gForce: { label: 'G-Force', unit: 'g', max: 2, thresholds: { warn: 1.0, danger: 1.2 } },
+    vibration: { label: 'Vibration', unit: 'Hz', max: 60, thresholds: { warn: 40, danger: 50 } },
+    soundAmplitude: { label: 'Sound Amp.', unit: 'dB', max: 120, thresholds: { warn: 95, danger: 105 } },
+    temperature: { label: 'Temperature', unit: '°C', max: 50, thresholds: { warn: 35, danger: 40 } },
+    gasLevel: { label: 'Gas Level', unit: 'ppm', max: 500, thresholds: { warn: 350, danger: 400 } },
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Card title="Live Sensor Feed" icon={<SensorIcon className="w-6 h-6 text-cyan-400" />}>
-        <div className="space-y-3 text-sm">
-            {Object.entries(sensorData).map(([key, value]) => {
-                if (key === 'gps' || key === 'driverHealth') return null;
-                return (
-                     <div key={key} className="flex justify-between items-baseline">
-                        <span className="text-gray-400">{SENSOR_LABELS[key as keyof typeof SENSOR_LABELS]}:</span>
-                        <span className="font-mono font-bold text-lg text-gray-100">
-                            {typeof value === 'number' ? value.toFixed(1) : value}
-                            {key === 'gForce' && ' g'}
-                            {key === 'vibration' && ' Hz'}
-                            {key === 'velocity' && ' km/h'}
-                            {key === 'gasLevel' && ' ppm'}
-                            {key === 'temperature' && ' °C'}
-                            {key === 'soundAmplitude' && ' dB'}
-                        </span>
-                     </div>
-                );
-            })}
+        <div className="space-y-4">
+          {Object.entries(sensorConfigs).map(([key, config]) => {
+            const value = sensorData[key as keyof typeof sensorConfigs];
+            if (typeof value !== 'number') return null;
+            return (
+              <SensorBar
+                key={key}
+                label={config.label}
+                value={value}
+                max={config.max}
+                thresholds={config.thresholds}
+                unit={config.unit}
+              />
+            )
+          })}
         </div>
       </Card>
       
@@ -275,6 +295,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ sensorData, dataHistory, a
                 <div key={entry.hash} className="bg-gray-900/70 p-2 rounded-md text-xs font-mono">
                     <p><span className="text-gray-400">Time:</span> {entry.timestamp}</p>
                     <p className="truncate"><span className="text-gray-400">Hash:</span> <span className="text-yellow-400">{entry.hash}</span></p>
+                    <p><span className="text-gray-400">Impact Speed:</span> <span className="text-red-400 font-bold">{entry.velocityAtImpact.toFixed(1)} km/h</span></p>
                 </div>
             )) : <p className="text-gray-500 text-center pt-16">No accidents recorded.</p>}
         </div>

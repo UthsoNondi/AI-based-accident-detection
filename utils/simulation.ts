@@ -36,19 +36,21 @@ export const updateSensorData = (currentData: SensorData, isCrash = false): Sens
   if (isCrash) {
     return {
       ...currentData,
-      gForce: 8 + Math.random() * 4, // High G-force
-      vibration: 200 + Math.random() * 100, // Extreme vibration
-      soundAmplitude: 120 + Math.random() * 20, // Loud noise
+      gForce: 8 + Math.random() * 7, // More intense G-force (8-15g)
+      vibration: 250 + Math.random() * 50, // More intense vibration
+      soundAmplitude: 130 + Math.random() * 10, // Loud crash noise
       velocity: 0, // Vehicle stops on crash
       driverHealth: {
         ...currentData.driverHealth,
-        heartRate: currentData.driverHealth.heartRate + 40, // Spike in heart rate
+        heartRate: clamp(currentData.driverHealth.heartRate + 50, 60, 180), // Sharp spike in heart rate
         fatigueLevel: 'High'
       }
     };
   }
   
-  const newVelocity = clamp(currentData.velocity + (Math.random() - 0.45) * 5, 0, 120);
+  // Smoother velocity changes, slightly biased towards acceleration at low speeds
+  const accelerationFactor = (130 - currentData.velocity) / 130; // Stronger acceleration when slower
+  const newVelocity = clamp(currentData.velocity + (Math.random() - 0.4) * 4 * accelerationFactor, 0, 130);
   
   let newFatigueLevel = currentData.driverHealth.fatigueLevel;
   if(newFatigueLevel === 'Normal' && Math.random() < 0.005) {
@@ -59,15 +61,17 @@ export const updateSensorData = (currentData: SensorData, isCrash = false): Sens
 
 
   return {
-    gForce: clamp(currentData.gForce + (Math.random() - 0.5) * 0.2, 0.05, 1.5),
-    vibration: clamp(currentData.vibration + (Math.random() - 0.5) * 5, 10, 50),
+    gForce: clamp(0.1 + (newVelocity / 100) + (Math.random() - 0.5) * 0.2, 0.05, 1.5),
+    // Vibration now linked to velocity
+    vibration: clamp(10 + newVelocity / 5 + (Math.random() - 0.5) * 5, 10, 60),
     gps: {
       lat: (parseFloat(currentData.gps.lat) + (Math.random() - 0.5) * 0.0001 * (newVelocity/100)).toFixed(4),
       lng: (parseFloat(currentData.gps.lng) + (Math.random() - 0.5) * 0.0001 * (newVelocity/100)).toFixed(4),
     },
     temperature: clamp(currentData.temperature + (Math.random() - 0.5) * 0.5, 20, 40),
     gasLevel: clamp(currentData.gasLevel + (Math.random() - 0.5) * 10, 280, 400),
-    soundAmplitude: clamp(40 + newVelocity/2 + (Math.random() - 0.5) * 10, 40, 100),
+    // Sound linked to velocity
+    soundAmplitude: clamp(40 + newVelocity / 2 + (Math.random() - 0.5) * 10, 40, 110),
     velocity: newVelocity,
     driverHealth: {
         heartRate: clamp(currentData.driverHealth.heartRate + (Math.random() - 0.5) * 2, 60, 110),
@@ -121,12 +125,14 @@ const simpleHash = (data: string): string => {
 
 export const createBlockchainEntry = (previousHash: string, sensorData: SensorData): AccidentLog => {
     const timestamp = new Date().toISOString();
+    const velocityAtImpact = sensorData.velocity;
     const dataToHash = JSON.stringify({
         timestamp,
         previousHash,
         sensorData,
+        velocityAtImpact,
     });
     const hash = simpleHash(dataToHash);
 
-    return { timestamp, hash, previousHash, data: sensorData };
+    return { timestamp, hash, previousHash, data: sensorData, velocityAtImpact };
 };

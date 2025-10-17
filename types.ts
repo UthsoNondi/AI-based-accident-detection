@@ -5,4 +5,5 @@ export interface AccidentLog {
   hash: string;
   previousHash: string;
   data: SensorData;
+  velocityAtImpact: number;
 }
